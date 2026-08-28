@@ -1,0 +1,34 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Manga {
+  id         Int              @id @default(autoincrement())
+  title      String
+  filePath   String
+  coverPath  String?
+  totalPages Int
+  createdAt  DateTime         @default(now())
+  reading    ReadingProgress[]
+  favorites  Favorite[]
+}
+
+model ReadingProgress {
+  id         Int      @id @default(autoincrement())
+  manga      Manga    @relation(fields: [mangaId], references: [id])
+  mangaId    Int
+  currentPage Int
+  percentage Float
+  updatedAt  DateTime @updatedAt
+}
+
+model Favorite {
+  id      Int   @id @default(autoincrement())
+  manga   Manga @relation(fields: [mangaId], references: [id])
+  mangaId Int  @unique
+}

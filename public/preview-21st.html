@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MangaVault — Preview 21st.dev</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    :root{ --accent: #7c3aed; --bg: #071226; --muted: #9aa4b2 }
+    body{ background: linear-gradient(180deg,#071226 0%, #081a2f 100%); color: #e6eef8; font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
+    .card{ background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.03); border-radius:12px }
+    .cover{ height:220px; display:flex; align-items:center; justify-content:center; background: linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0.15)); overflow:hidden }
+    .btn{ background: var(--accent); color:white; padding:8px 14px; border-radius:10px; font-weight:600 }
+    .ghost{ background:transparent; border:1px solid rgba(255,255,255,0.03); padding:6px 10px; border-radius:10px; color:var(--muted) }
+  </style>
+</head>
+<body class="min-h-screen py-8">
+  <div class="max-w-6xl mx-auto px-6">
+    <header class="flex items-center justify-between mb-6">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-violet-600 to-pink-500 flex items-center justify-center">MV</div>
+        <div>
+          <h1 style="font-size:1.5rem;font-weight:700">MangaVault — 21st.dev Preview</h1>
+          <div style="color:var(--muted);font-size:0.9rem">Interface inspirada em 21st.dev</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <input placeholder="Buscar..." class="rounded bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.03)] px-3 py-2 text-white" />
+        <button class="ghost">Biblioteca</button>
+        <button class="btn">Upload</button>
+      </div>
+    </header>
+
+    <section class="card p-5 mb-6 flex items-center gap-4">
+      <div class="cover w-1/4">
+        <svg width="70" height="70" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5"><path d="M12 2v20"></path></svg>
+      </div>
+      <div class="flex-1">
+        <h2 style="font-weight:700">Teste rápido — sem instalação</h2>
+        <p style="color:var(--muted)">Arraste PDFs para a área abaixo ou use o botão selecionar para testar o leitor com extração da primeira página como capa.</p>
+      </div>
+      <div>
+        <button class="btn">Selecionar arquivos</button>
+      </div>
+    </section>
+
+    <section class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" id="grid">
+      <div class="card p-3">
+        <div class="cover mb-3"></div>
+        <div class="font-semibold">Nenhum mangá carregado</div>
+      </div>
+    </section>
+
+    <div id="reader" style="display:none" class="fixed inset-0 bg-[rgba(2,6,23,0.8)] flex items-center justify-center p-6">
+      <div class="max-w-5xl w-full card p-4">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-3">
+            <button class="ghost" id="close">Fechar</button>
+            <div id="label">Página <span id="pcur">1</span> / <span id="ptot">0</span></div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="ghost" id="prev">←</button>
+            <button class="ghost" id="next">→</button>
+            <input id="pinput" type="number" value="1" class="rounded bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.03)] px-2 py-1" />
+          </div>
+        </div>
+        <div id="content" style="height:70vh; overflow:auto"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <script>
+    const pdfjsLib = window['pdfjs-dist/build/pdf'];
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+    const grid = document.getElementById('grid');
+    const reader = document.getElementById('reader');
+    const content = document.getElementById('content');
+    const pcur = document.getElementById('pcur');
+    const ptot = document.getElementById('ptot');
+    const prev = document.getElementById('prev');
+    const next = document.getElementById('next');
+    const pinput = document.getElementById('pinput');
+    const closeBtn = document.getElementById('close');
+
+    document.querySelector('.btn').addEventListener('click', ()=>{ const inp = document.createElement('input'); inp.type='file'; inp.accept='application/pdf'; inp.multiple=true; inp.onchange = (e)=> loadFiles(Array.from(e.target.files)); inp.click(); });
+
+    async function loadFiles(files){
+      for(const f of files){
+        if(f.type!=='application/pdf') continue;
+        const ab = await f.arrayBuffer();
+        const task = pdfjsLib.getDocument({data:ab});
+        const pdf = await task.promise;
+        const p = await pdf.getPage(1);
+        const viewport = p.getViewport({scale:1.5});
+        const canvas = document.createElement('canvas');
+        canvas.width = viewport.width; canvas.height = viewport.height;
+        const ctx = canvas.getContext('2d');
+        await p.render({canvasContext:ctx, viewport}).promise;
+        const dataUrl = canvas.toDataURL('image/png');
+        const card = document.createElement('div'); card.className='card p-3';
+        card.innerHTML = `<div class="cover mb-3"><img src="${dataUrl}" style="width:100%;height:100%;object-fit:cover"/></div><div class="font-semibold">${escapeHtml(f.name.replace(/\.pdf$/i,''))}</div><div class="text-sm" style="color:var(--muted)">${pdf.numPages} páginas</div><div class="mt-3"><button class='btn open'>Abrir</button></div>`;
+        card.querySelector('.open').addEventListener('click', ()=> openReader(ab,pdf));
+        grid.prepend(card);
+      }
+    }
+
+    function escapeHtml(s){ return s.replace(/[&<>\"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":"&#39;"})[c]); }
+
+    async function openReader(ab,pdf){ reader.style.display='flex'; content.innerHTML=''; ptot.textContent=pdf.numPages; pcur.textContent='1'; pinput.value='1'; reader.pdf = pdf; renderPage(1);
+      const last = localStorage.getItem('mangavault-lastpage-' + (pdf._pdfInfo?.fingerprint || 'v'));
+      if(last) renderPage(Number(last));
+    }
+
+    async function renderPage(n){ const pdf = reader.pdf; if(!pdf) return; const page = await pdf.getPage(n); const viewport = page.getViewport({scale:1.5}); const canvas=document.createElement('canvas'); canvas.width = viewport.width; canvas.height = viewport.height; const ctx = canvas.getContext('2d'); await page.render({canvasContext:ctx, viewport}).promise; content.innerHTML=''; content.appendChild(canvas); pcur.textContent = String(n); pinput.value = String(n); localStorage.setItem('mangavault-lastpage-'+ (reader.pdf._pdfInfo?.fingerprint||'v'), String(n)); }
+
+    prev.addEventListener('click', ()=>{ const v = Math.max(1, Number(pinput.value)-1); renderPage(v); });
+    next.addEventListener('click', ()=>{ const pdf = reader.pdf; if(!pdf) return; const v = Math.min(pdf.numPages, Number(pinput.value)+1); renderPage(v); });
+    pinput.addEventListener('change', ()=>{ renderPage(Math.max(1, Math.min(reader.pdf.numPages, Number(pinput.value)))); });
+    closeBtn.addEventListener('click', ()=>{ reader.style.display='none'; content.innerHTML=''; reader.pdf=null; });
+
+  </script>
+</body>
+</html>

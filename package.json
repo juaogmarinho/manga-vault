@@ -1,0 +1,38 @@
+{
+  "name": "mangavault",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev --name init"
+  },
+  "dependencies": {
+    "next": "15.0.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "typescript": "5.1.6",
+    "tailwindcss": "^4.0.0",
+    "autoprefixer": "^10.4.13",
+    "postcss": "^8.4.16",
+    "@prisma/client": "5.10.0",
+    "prisma": "5.10.0",
+    "formidable": "2.0.1",
+    "pdf-parse": "1.1.1",
+    "sharp": "0.32.6",
+    "react-pdf": "9.1.0",
+    "lucide-react": "0.268.0",
+    "clsx": "1.2.1",
+    "swr": "2.2.0",
+    "zustand": "4.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "20.3.1",
+    "@types/react": "18.2.14",
+    "@types/react-dom": "18.2.6",
+    "eslint": "8.40.0",
+    "eslint-config-next": "13.4.0"
+  }
+}
