@@ -1,6 +1,5 @@
-import './globals.css';
+import '../styles/globals.css';
 import React from 'react';
-import Head from 'next/head';
 import Header from '../components/header';
 
 export const metadata = {
@@ -11,7 +10,6 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR">
-      <Head />
       <body className="min-h-screen">
         <div className="container-21">
           <Header />
